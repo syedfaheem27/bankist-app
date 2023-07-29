@@ -89,7 +89,6 @@ const displayMovements = movements => {
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
 };
-displayMovements(account1.movements);
 
 // Calculate total balance and display it
 
@@ -98,27 +97,99 @@ const calcDisplayBalance = mov => {
   labelBalance.textContent = `${balance}€`;
 };
 
-calcDisplayBalance(account1.movements);
-
 // Calculate the movement summary and display them
-const calcDisplaySummary = movements => {
-  const income = movements
+const calcDisplaySummary = acc => {
+  const income = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, curr) => acc + curr, 0);
   labelSumIn.textContent = `${income}€`;
 
-  const out = movements
+  const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, curr) => acc + curr, 0);
   labelSumOut.textContent = `${Math.abs(out)}€`;
 
   // Assuming that the bank pays an interest of 1.2% on each deposit and only adds that interest if it is greater than 1 €
-  const interest = movements
+  const interest = acc.movements
     .filter(mov => mov > 0)
-    .map(deposits => 0.012 * deposits)
+    .map(deposits => (deposits * acc.interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, curr) => acc + curr, 0);
   labelSumInterest.textContent = `${interest}€`;
 };
 
-calcDisplaySummary(account1.movements);
+//current account holder
+let currAcc;
+
+//Login handler
+const loginHandler = e => {
+  e.preventDefault();
+  currAcc = accounts.find(acc => acc.userName === inputLoginUsername.value);
+
+  //Logged In
+  if (currAcc?.pin === Number(inputLoginPin.value)) {
+    // Display UI and message
+    labelWelcome.textContent = `Welcome ${currAcc.owner.split(" ")[0]}`;
+    containerApp.style.opacity = 100;
+
+    //Clear Input fields
+    inputLoginPin.value = inputLoginUsername.value = "";
+    inputLoginPin.blur();
+
+    //display Movements
+    displayMovements(currAcc.movements);
+
+    //display balance
+    calcDisplayBalance(currAcc.movements);
+
+    //display summary
+    calcDisplaySummary(currAcc);
+  }
+};
+
+//Transfer money
+
+// const transferMoneyHandler = e => {
+//   e.preventDefault();
+
+//   const transferedAcc = accounts.find(
+//     acc => acc.userName === inputTransferTo.value
+//   );
+
+//   //Adding a withdrawal to the current account and displaying them
+//   let transferredAmount = -Number(inputTransferAmount.value);
+//   currAcc.movements.push(transferredAmount);
+
+//   //display Movements
+//   displayMovements(currAcc.movements);
+
+//   //display balance
+//   calcDisplayBalance(currAcc.movements);
+
+//   //display summary
+//   calcDisplaySummary(currAcc);
+
+//   // Transferring money to the person
+//   transferedAcc?.movements.push(Math.abs(transferredAmount));
+// };
+
+//Loan handler
+// const loanHandler = e => {
+//   e.preventDefault();
+//   let loanAmount = Number(inputLoanAmount.value);
+//   currAcc.movements.push(loanAmount);
+
+//   //display Movements
+//   displayMovements(currAcc.movements);
+
+//   //display balance
+//   calcDisplayBalance(currAcc.movements);
+
+//   //display summary
+//   calcDisplaySummary(currAcc);
+// };
+
+// Event handlers
+btnLogin.addEventListener("click", loginHandler);
+// btnTransfer.addEventListener("click", transferMoneyHandler);
+// btnLoan.addEventListener("click", loanHandler);
