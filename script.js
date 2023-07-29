@@ -76,9 +76,11 @@ const createUserNames = accs => {
 createUserNames(accounts);
 
 //Add movements and display them
-const displayMovements = movements => {
+const displayMovements = (movements, sort = false) => {
   containerMovements.innerHTML = "";
-  movements.forEach((mov, i) => {
+  let movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach((mov, i) => {
     let type = mov > 0 ? "deposit" : "withdrawal";
     let html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
@@ -228,8 +230,17 @@ const deleteAccountHandler = e => {
   inputCloseUsername.value = inputClosePin.value = "";
 };
 
+//sorting movements
+let sort = false;
+const sortMovementsHandler = e => {
+  e.preventDefault();
+  displayMovements(currAcc.movements, !sort);
+  sort = !sort;
+};
+
 // Event handlers
 btnLogin.addEventListener("click", loginHandler);
 btnTransfer.addEventListener("click", transferMoneyHandler);
 btnClose.addEventListener("click", deleteAccountHandler);
 btnLoan.addEventListener("click", loanHandler);
+btnSort.addEventListener("click", sortMovementsHandler);
