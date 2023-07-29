@@ -92,9 +92,9 @@ const displayMovements = movements => {
 
 // Calculate total balance and display it
 
-const calcDisplayBalance = mov => {
-  const balance = mov.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${balance}€`;
+const calcDisplayBalance = acc => {
+  acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
+  labelBalance.textContent = `${acc.balance}€`;
 };
 
 // Calculate the movement summary and display them
@@ -118,6 +118,17 @@ const calcDisplaySummary = acc => {
   labelSumInterest.textContent = `${interest}€`;
 };
 
+const updateUI = acc => {
+  // display movements
+  displayMovements(acc.movements);
+
+  // display summary
+  calcDisplaySummary(acc);
+
+  // display balance
+  calcDisplayBalance(acc);
+};
+
 //current account holder
 let currAcc;
 
@@ -136,42 +147,42 @@ const loginHandler = e => {
     inputLoginPin.value = inputLoginUsername.value = "";
     inputLoginPin.blur();
 
-    //display Movements
-    displayMovements(currAcc.movements);
-
-    //display balance
-    calcDisplayBalance(currAcc.movements);
-
-    //display summary
-    calcDisplaySummary(currAcc);
+    // updateUI
+    updateUI(currAcc);
   }
 };
 
 //Transfer money
 
-// const transferMoneyHandler = e => {
-//   e.preventDefault();
+const transferMoneyHandler = e => {
+  e.preventDefault();
 
-//   const transferedAcc = accounts.find(
-//     acc => acc.userName === inputTransferTo.value
-//   );
+  const transferedAcc = accounts.find(
+    acc => acc.userName === inputTransferTo.value
+  );
 
-//   //Adding a withdrawal to the current account and displaying them
-//   let transferredAmount = -Number(inputTransferAmount.value);
-//   currAcc.movements.push(transferredAmount);
+  //Adding a withdrawal to the current account and displaying them
+  let transferAmount = Number(inputTransferAmount.value);
 
-//   //display Movements
-//   displayMovements(currAcc.movements);
+  //clear input fields
+  inputTransferTo.value = inputTransferAmount.value = "";
 
-//   //display balance
-//   calcDisplayBalance(currAcc.movements);
+  // checking if the user has the necessay amount to transfer
+  if (
+    transferAmount > 0 &&
+    transferAmount <= currAcc.balance &&
+    transferedAcc &&
+    transferedAcc?.userName !== currAcc.userName
+  ) {
+    currAcc.movements.push(-transferAmount);
 
-//   //display summary
-//   calcDisplaySummary(currAcc);
+    // Update UI
+    updateUI(currAcc);
 
-//   // Transferring money to the person
-//   transferedAcc?.movements.push(Math.abs(transferredAmount));
-// };
+    // Transferring money to the person
+    transferedAcc?.movements.push(Math.abs(transferAmount));
+  }
+};
 
 //Loan handler
 // const loanHandler = e => {
@@ -189,7 +200,29 @@ const loginHandler = e => {
 //   calcDisplaySummary(currAcc);
 // };
 
+//Deleting an account
+const deleteAccountHandler = e => {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currAcc.userName &&
+    Number(inputClosePin.value) === currAcc.pin
+  ) {
+    let currAccIndex = accounts.findIndex(
+      acc => acc.userName === currAcc.userName
+    );
+
+    // deleting the account from the accounts array
+    accounts.splice(currAccIndex, 1);
+
+    //reflecting deletion in UI
+    containerApp.style.opacity = 0;
+  }
+  // clearing the input fields
+  inputCloseUsername.value = inputClosePin.value = "";
+};
+
 // Event handlers
 btnLogin.addEventListener("click", loginHandler);
-// btnTransfer.addEventListener("click", transferMoneyHandler);
+btnTransfer.addEventListener("click", transferMoneyHandler);
+btnClose.addEventListener("click", deleteAccountHandler);
 // btnLoan.addEventListener("click", loanHandler);
