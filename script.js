@@ -63,6 +63,18 @@ const inputClosePin = document.querySelector(".form__input--pin");
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
+// Adding a username property into the each individual account
+const createUserNames = accs => {
+  accs.forEach(acc => {
+    acc.userName = acc.owner
+      .toLowerCase()
+      .split(" ")
+      .map(name => name[0])
+      .join("");
+  });
+};
+createUserNames(accounts);
+
 //Add movements and display them
 const displayMovements = movements => {
   containerMovements.innerHTML = "";
@@ -78,3 +90,35 @@ const displayMovements = movements => {
   });
 };
 displayMovements(account1.movements);
+
+// Calculate total balance and display it
+
+const calcDisplayBalance = mov => {
+  const balance = mov.reduce((acc, curr) => acc + curr, 0);
+  labelBalance.textContent = `${balance}€`;
+};
+
+calcDisplayBalance(account1.movements);
+
+// Calculate the movement summary and display them
+const calcDisplaySummary = movements => {
+  const income = movements
+    .filter(mov => mov > 0)
+    .reduce((acc, curr) => acc + curr, 0);
+  labelSumIn.textContent = `${income}€`;
+
+  const out = movements
+    .filter(mov => mov < 0)
+    .reduce((acc, curr) => acc + curr, 0);
+  labelSumOut.textContent = `${Math.abs(out)}€`;
+
+  // Assuming that the bank pays an interest of 1.2% on each deposit and only adds that interest if it is greater than 1 €
+  const interest = movements
+    .filter(mov => mov > 0)
+    .map(deposits => 0.012 * deposits)
+    .filter(int => int >= 1)
+    .reduce((acc, curr) => acc + curr, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
+
+calcDisplaySummary(account1.movements);
