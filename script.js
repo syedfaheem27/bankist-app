@@ -184,21 +184,28 @@ const transferMoneyHandler = e => {
   }
 };
 
-//Loan handler
-// const loanHandler = e => {
-//   e.preventDefault();
-//   let loanAmount = Number(inputLoanAmount.value);
-//   currAcc.movements.push(loanAmount);
+// Loan handler
+const loanHandler = e => {
+  e.preventDefault();
+  let loanAmount = Number(inputLoanAmount.value);
 
-//   //display Movements
-//   displayMovements(currAcc.movements);
+  // The bank has a policy of granting loans only if the user has atleast a
+  // deposit greater than 10% of the loan amount asked and the amount is less
+  // than or equal to a million
 
-//   //display balance
-//   calcDisplayBalance(currAcc.movements);
+  //Clearing the input value
+  inputLoanAmount.value = "";
 
-//   //display summary
-//   calcDisplaySummary(currAcc);
-// };
+  if (
+    loanAmount > 0 &&
+    currAcc.movements.some(mov => mov >= loanAmount * 0.1) &&
+    loanAmount < 1000000
+  ) {
+    currAcc.movements.push(loanAmount);
+
+    updateUI(currAcc);
+  }
+};
 
 //Deleting an account
 const deleteAccountHandler = e => {
@@ -225,4 +232,4 @@ const deleteAccountHandler = e => {
 btnLogin.addEventListener("click", loginHandler);
 btnTransfer.addEventListener("click", transferMoneyHandler);
 btnClose.addEventListener("click", deleteAccountHandler);
-// btnLoan.addEventListener("click", loanHandler);
+btnLoan.addEventListener("click", loanHandler);
