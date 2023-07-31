@@ -3,13 +3,28 @@
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // BANKIST APP
-
 // Data
+
+// DIFFERENT DATA! Contains movement dates, currency and locale
+
 const account1 = {
   owner: "Jonas Schmedtmann",
-  movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
+  movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+
+  movementsDates: [
+    "2019-11-18T21:31:17.178Z",
+    "2019-12-23T07:42:02.383Z",
+    "2020-01-28T09:15:04.904Z",
+    "2020-04-01T10:17:24.185Z",
+    "2020-05-08T14:11:59.604Z",
+    "2020-07-26T17:01:17.194Z",
+    "2020-07-28T23:36:17.929Z",
+    "2020-08-01T10:51:36.790Z",
+  ],
+  currency: "EUR",
+  locale: "pt-PT", // de-DE
 };
 
 const account2 = {
@@ -17,23 +32,22 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+
+  movementsDates: [
+    "2019-11-01T13:15:33.035Z",
+    "2019-11-30T09:48:16.867Z",
+    "2019-12-25T06:04:23.907Z",
+    "2020-01-25T14:18:46.235Z",
+    "2020-02-05T16:33:06.386Z",
+    "2020-04-10T14:43:26.374Z",
+    "2020-06-25T18:49:59.371Z",
+    "2020-07-26T12:01:20.894Z",
+  ],
+  currency: "USD",
+  locale: "en-US",
 };
 
-const account3 = {
-  owner: "Steven Thomas Williams",
-  movements: [200, -200, 340, -300, -20, 50, 400, -460],
-  interestRate: 0.7,
-  pin: 3333,
-};
-
-const account4 = {
-  owner: "Sarah Smith",
-  movements: [430, 1000, 700, 50, 90],
-  interestRate: 1,
-  pin: 4444,
-};
-
-const accounts = [account1, account2, account3, account4];
+const accounts = [account1, account2];
 
 // Elements
 const labelWelcome = document.querySelector(".welcome");
@@ -76,17 +90,22 @@ const createUserNames = accs => {
 createUserNames(accounts);
 
 //Add movements and display them
-const displayMovements = (movements, sort = false) => {
+const displayMovements = (acc, sort = false) => {
   containerMovements.innerHTML = "";
   let movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
 
-  movs.forEach((mov, i) => {
+  acc.movements.forEach((mov, i) => {
+    const { year, month, day } = getCurrentDate();
+
     let type = mov > 0 ? "deposit" : "withdrawal";
     let html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-          <div class="movements__value">${mov}€</div>
+       <div class="movements__date">${day.toString().padStart(2, 0)}/${month
+      .toString()
+      .padStart(2, 0)}/${year}</div>
+          <div class="movements__value">${mov.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
@@ -96,7 +115,13 @@ const displayMovements = (movements, sort = false) => {
 
 const calcDisplayBalance = acc => {
   acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${acc.balance}€`;
+  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+  const { year, month, day, hour, min } = getCurrentDate();
+  labelDate.textContent = `${day.toString().padStart(2, 0)}/${month
+    .toString()
+    .padStart(2, 0)}/${year},${hour.toString().padStart(2, 0)}:${min
+    .toString()
+    .padStart(2, 0)}`;
 };
 
 // Calculate the movement summary and display them
@@ -104,12 +129,12 @@ const calcDisplaySummary = acc => {
   const income = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, curr) => acc + curr, 0);
-  labelSumIn.textContent = `${income}€`;
+  labelSumIn.textContent = `${income.toFixed(2)}€`;
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, curr) => acc + curr, 0);
-  labelSumOut.textContent = `${Math.abs(out)}€`;
+  labelSumOut.textContent = `${Math.abs(out).toFixed(2)}€`;
 
   // Assuming that the bank pays an interest of 1.2% on each deposit and only adds that interest if it is greater than 1 €
   const interest = acc.movements
@@ -117,18 +142,35 @@ const calcDisplaySummary = acc => {
     .map(deposits => (deposits * acc.interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, curr) => acc + curr, 0);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
 };
 
 const updateUI = acc => {
   // display movements
-  displayMovements(acc.movements);
-
-  // display summary
-  calcDisplaySummary(acc);
+  displayMovements(acc);
 
   // display balance
   calcDisplayBalance(acc);
+
+  // display summary
+  calcDisplaySummary(acc);
+};
+
+//Get current date
+const getCurrentDate = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hour = date.getHours();
+  const min = date.getMinutes();
+  return {
+    year,
+    month,
+    day,
+    hour,
+    min,
+  };
 };
 
 //current account holder
@@ -140,7 +182,7 @@ const loginHandler = e => {
   currAcc = accounts.find(acc => acc.userName === inputLoginUsername.value);
 
   //Logged In
-  if (currAcc?.pin === Number(inputLoginPin.value)) {
+  if (currAcc?.pin === +inputLoginPin.value) {
     // Display UI and message
     labelWelcome.textContent = `Welcome ${currAcc.owner.split(" ")[0]}`;
     containerApp.style.opacity = 100;
@@ -164,7 +206,7 @@ const transferMoneyHandler = e => {
   );
 
   //Adding a withdrawal to the current account and displaying them
-  let transferAmount = Number(inputTransferAmount.value);
+  let transferAmount = +inputTransferAmount.value;
 
   //clear input fields
   inputTransferTo.value = inputTransferAmount.value = "";
@@ -177,19 +219,21 @@ const transferMoneyHandler = e => {
     transferedAcc?.userName !== currAcc.userName
   ) {
     currAcc.movements.push(-transferAmount);
+    currAcc.movementsDates.push(new Date().toISOString());
 
     // Update UI
     updateUI(currAcc);
 
     // Transferring money to the person
     transferedAcc?.movements.push(Math.abs(transferAmount));
+    transferedAcc?.movementsDates.push(new Date().toISOString());
   }
 };
 
 // Loan handler
 const loanHandler = e => {
   e.preventDefault();
-  let loanAmount = Number(inputLoanAmount.value);
+  let loanAmount = Math.floor(inputLoanAmount.value);
 
   // The bank has a policy of granting loans only if the user has atleast a
   // deposit greater than 10% of the loan amount asked and the amount is less
@@ -204,6 +248,7 @@ const loanHandler = e => {
     loanAmount < 1000000
   ) {
     currAcc.movements.push(loanAmount);
+    currAcc.movementsDates.push(new Date().toISOString());
 
     updateUI(currAcc);
   }
@@ -214,7 +259,7 @@ const deleteAccountHandler = e => {
   e.preventDefault();
   if (
     inputCloseUsername.value === currAcc.userName &&
-    Number(inputClosePin.value) === currAcc.pin
+    +inputClosePin.value === currAcc.pin
   ) {
     let currAccIndex = accounts.findIndex(
       acc => acc.userName === currAcc.userName
