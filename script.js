@@ -19,9 +19,9 @@ const account1 = {
     "2020-01-28T09:15:04.904Z",
     "2020-04-01T10:17:24.185Z",
     "2020-05-08T14:11:59.604Z",
-    "2020-07-26T17:01:17.194Z",
-    "2020-07-28T23:36:17.929Z",
-    "2020-08-01T10:51:36.790Z",
+    "2023-07-28T17:01:17.194Z",
+    "2023-07-25T23:36:17.929Z",
+    "2023-07-29T10:51:36.790Z",
   ],
   currency: "EUR",
   locale: "pt-PT", // de-DE
@@ -89,25 +89,35 @@ const createUserNames = accs => {
 };
 createUserNames(accounts);
 
+//days passed function
+const daysPassed = (date1, date2) =>
+  Math.round(Math.abs(date1 - date2) / (1000 * 24 * 60 * 60));
+
+//Format dates passed into display function
+const formatMovementDays = (date, acc) => {
+  const days = daysPassed(date, new Date());
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days <= 7) return `${days} days ago`;
+
+  return new Intl.DateTimeFormat(acc.locale).format(date);
+};
+
 //Add movements and display them
 const displayMovements = (acc, sort = false) => {
   containerMovements.innerHTML = "";
   let movs = sort ? acc.movements.slice().sort((a, b) => a - b) : acc.movements;
 
   movs.forEach((mov, i) => {
-    const now = new Date(acc.movementsDates[i]);
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const day = now.getDate();
+    const date = new Date(acc.movementsDates[i]);
+    const timePassed = formatMovementDays(date, acc);
 
     let type = mov > 0 ? "deposit" : "withdrawal";
     let html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-       <div class="movements__date">${day.toString().padStart(2, 0)}/${month
-      .toString()
-      .padStart(2, 0)}/${year}</div>
+       <div class="movements__date">${timePassed}</div>
           <div class="movements__value">${mov.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML("afterbegin", html);
@@ -119,12 +129,17 @@ const displayMovements = (acc, sort = false) => {
 const calcDisplayBalance = acc => {
   acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
   labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
-  const { year, month, day, hour, min } = getCurrentDate();
-  labelDate.textContent = `${day.toString().padStart(2, 0)}/${month
-    .toString()
-    .padStart(2, 0)}/${year},${hour.toString().padStart(2, 0)}:${min
-    .toString()
-    .padStart(2, 0)}`;
+
+  const option = {
+    hour: "numeric",
+    minute: "numeric",
+    day: "numeric",
+    year: "numeric",
+    month: "numeric",
+  };
+  labelDate.textContent = new Intl.DateTimeFormat(acc.locale, option).format(
+    new Date()
+  );
 };
 
 // Calculate the movement summary and display them
@@ -157,23 +172,6 @@ const updateUI = acc => {
 
   // display summary
   calcDisplaySummary(acc);
-};
-
-//Get current date
-const getCurrentDate = () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hour = date.getHours();
-  const min = date.getMinutes();
-  return {
-    year,
-    month,
-    day,
-    hour,
-    min,
-  };
 };
 
 //current account holder
