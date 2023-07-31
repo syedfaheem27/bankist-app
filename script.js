@@ -92,10 +92,13 @@ createUserNames(accounts);
 //Add movements and display them
 const displayMovements = (acc, sort = false) => {
   containerMovements.innerHTML = "";
-  let movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  let movs = sort ? acc.movements.slice().sort((a, b) => a - b) : acc.movements;
 
-  acc.movements.forEach((mov, i) => {
-    const { year, month, day } = getCurrentDate();
+  movs.forEach((mov, i) => {
+    const now = new Date(acc.movementsDates[i]);
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
 
     let type = mov > 0 ? "deposit" : "withdrawal";
     let html = `<div class="movements__row">
@@ -219,6 +222,8 @@ const transferMoneyHandler = e => {
     transferedAcc?.userName !== currAcc.userName
   ) {
     currAcc.movements.push(-transferAmount);
+
+    //Adding movement date to the current account
     currAcc.movementsDates.push(new Date().toISOString());
 
     // Update UI
@@ -226,6 +231,8 @@ const transferMoneyHandler = e => {
 
     // Transferring money to the person
     transferedAcc?.movements.push(Math.abs(transferAmount));
+
+    //Adding movement date to transferred account
     transferedAcc?.movementsDates.push(new Date().toISOString());
   }
 };
@@ -248,6 +255,8 @@ const loanHandler = e => {
     loanAmount < 1000000
   ) {
     currAcc.movements.push(loanAmount);
+
+    //Adding movement date to the current account
     currAcc.movementsDates.push(new Date().toISOString());
 
     updateUI(currAcc);
@@ -279,7 +288,7 @@ const deleteAccountHandler = e => {
 let sort = false;
 const sortMovementsHandler = e => {
   e.preventDefault();
-  displayMovements(currAcc.movements, !sort);
+  displayMovements(currAcc, !sort);
   sort = !sort;
 };
 
