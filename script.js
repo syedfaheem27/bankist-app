@@ -134,22 +134,26 @@ const displayMovements = (acc, sort = false) => {
   });
 };
 
-// Calculate total balance and display it
+//Add the currDate function that provides the date in a nice formatted way
 
+const currDate = (locale = "en-US", options) => {
+  return new Intl.DateTimeFormat(locale, options).format(new Date());
+};
+
+// Calculate total balance and display it
 const calcDisplayBalance = acc => {
   acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
   labelBalance.textContent = formatMovs(acc.balance, acc.locale, acc.currency);
 
-  const option = {
+  //Adding the date and the timer
+  const options = {
     hour: "numeric",
     minute: "numeric",
     day: "numeric",
     year: "numeric",
     month: "numeric",
   };
-  labelDate.textContent = new Intl.DateTimeFormat(acc.locale, option).format(
-    new Date()
-  );
+  labelDate.textContent = currDate(acc.locale, options);
 };
 
 // Calculate the movement summary and display them
@@ -183,6 +187,8 @@ const updateUI = acc => {
   // display summary
   calcDisplaySummary(acc);
 };
+//variable that holds interval id
+let timer;
 
 //current account holder
 let currAcc;
@@ -195,20 +201,46 @@ const loginHandler = e => {
   //Logged In
   if (currAcc?.pin === +inputLoginPin.value) {
     // Display UI and message
-    labelWelcome.textContent = `Welcome ${currAcc.owner.split(" ")[0]}`;
+    labelWelcome.textContent = `Welcome ${currAcc.owner.split(" ")[0]}!`;
     containerApp.style.opacity = 100;
 
     //Clear Input fields
     inputLoginPin.value = inputLoginUsername.value = "";
     inputLoginPin.blur();
 
+    // clearing the timer
+    if (timer) clearInterval(timer);
+
+    // Logout timer
+    // The user gets logged out after 5 minutes
+    let time = 300;
+    let min = Math.trunc(time / 60);
+    let sec = time % 60;
+    labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
+      .toString()
+      .padStart(2, 0)}`;
+
+    timer = setInterval(() => {
+      min = Math.trunc(time / 60);
+      sec = time % 60;
+      if (time === 0) {
+        // logout
+        clearInterval(timer);
+        labelWelcome.textContent = "Log in to get started";
+        containerApp.style.opacity = 0;
+      }
+      time--;
+      labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
+        .toString()
+        .padStart(2, 0)}`;
+    }, 1000);
+
     // updateUI
     updateUI(currAcc);
   }
 };
 
-//Transfer money
-
+//Transfer money Handler
 const transferMoneyHandler = e => {
   e.preventDefault();
 
@@ -278,6 +310,9 @@ const loanHandler = e => {
 //Deleting an account
 const deleteAccountHandler = e => {
   e.preventDefault();
+  if (timer) {
+    clearInterval(timer);
+  }
   if (
     inputCloseUsername.value === currAcc.userName &&
     +inputClosePin.value === currAcc.pin
@@ -296,7 +331,7 @@ const deleteAccountHandler = e => {
   inputCloseUsername.value = inputClosePin.value = "";
 };
 
-//sorting movements
+//Sorting movements
 let sort = false;
 const sortMovementsHandler = e => {
   e.preventDefault();
