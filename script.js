@@ -229,19 +229,21 @@ const transferMoneyHandler = e => {
     transferedAcc &&
     transferedAcc?.userName !== currAcc.userName
   ) {
-    currAcc.movements.push(-transferAmount);
+    setTimeout(() => {
+      currAcc.movements.push(-transferAmount);
 
-    //Adding movement date to the current account
-    currAcc.movementsDates.push(new Date().toISOString());
+      //Adding movement date to the current account
+      currAcc.movementsDates.push(new Date().toISOString());
 
-    // Update UI
-    updateUI(currAcc);
+      // Update UI
+      updateUI(currAcc);
 
-    // Transferring money to the person
-    transferedAcc?.movements.push(Math.abs(transferAmount));
+      // Transferring money to the person
+      transferedAcc?.movements.push(Math.abs(transferAmount));
 
-    //Adding movement date to transferred account
-    transferedAcc?.movementsDates.push(new Date().toISOString());
+      //Adding movement date to transferred account
+      transferedAcc?.movementsDates.push(new Date().toISOString());
+    }, 2000);
   }
 };
 
@@ -262,12 +264,14 @@ const loanHandler = e => {
     currAcc.movements.some(mov => mov >= loanAmount * 0.1) &&
     loanAmount < 1000000
   ) {
-    currAcc.movements.push(loanAmount);
+    setTimeout(() => {
+      currAcc.movements.push(loanAmount);
 
-    //Adding movement date to the current account
-    currAcc.movementsDates.push(new Date().toISOString());
+      //Adding movement date to the current account
+      currAcc.movementsDates.push(new Date().toISOString());
 
-    updateUI(currAcc);
+      updateUI(currAcc);
+    }, 3000);
   }
 };
 
