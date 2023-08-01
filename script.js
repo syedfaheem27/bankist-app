@@ -187,8 +187,39 @@ const updateUI = acc => {
   // display summary
   calcDisplaySummary(acc);
 };
+
 //variable that holds interval id
 let timer;
+
+// The logout timer function
+const logOutTimer = () => {
+  // clearing the timer
+  if (timer) clearInterval(timer);
+
+  // Logout timer
+  // The user gets logged out after 5 minutes
+  let time = 300;
+  let min = Math.trunc(time / 60);
+  let sec = time % 60;
+  labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
+    .toString()
+    .padStart(2, 0)}`;
+
+  timer = setInterval(() => {
+    min = Math.trunc(time / 60);
+    sec = time % 60;
+    if (time === 0) {
+      // logout
+      clearInterval(timer);
+      labelWelcome.textContent = "Log in to get started";
+      containerApp.style.opacity = 0;
+    }
+    time--;
+    labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
+      .toString()
+      .padStart(2, 0)}`;
+  }, 1000);
+};
 
 //current account holder
 let currAcc;
@@ -208,32 +239,8 @@ const loginHandler = e => {
     inputLoginPin.value = inputLoginUsername.value = "";
     inputLoginPin.blur();
 
-    // clearing the timer
-    if (timer) clearInterval(timer);
-
-    // Logout timer
-    // The user gets logged out after 5 minutes
-    let time = 300;
-    let min = Math.trunc(time / 60);
-    let sec = time % 60;
-    labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
-      .toString()
-      .padStart(2, 0)}`;
-
-    timer = setInterval(() => {
-      min = Math.trunc(time / 60);
-      sec = time % 60;
-      if (time === 0) {
-        // logout
-        clearInterval(timer);
-        labelWelcome.textContent = "Log in to get started";
-        containerApp.style.opacity = 0;
-      }
-      time--;
-      labelTimer.textContent = `${min.toString().padStart(2, 0)}:${sec
-        .toString()
-        .padStart(2, 0)}`;
-    }, 1000);
+    //The log out timer starts
+    logOutTimer();
 
     // updateUI
     updateUI(currAcc);
@@ -266,6 +273,9 @@ const transferMoneyHandler = e => {
 
       //Adding movement date to the current account
       currAcc.movementsDates.push(new Date().toISOString());
+
+      // The logOut timer resets
+      logOutTimer();
 
       // Update UI
       updateUI(currAcc);
@@ -301,6 +311,9 @@ const loanHandler = e => {
 
       //Adding movement date to the current account
       currAcc.movementsDates.push(new Date().toISOString());
+
+      // The logout timer starts
+      logOutTimer();
 
       updateUI(currAcc);
     }, 3000);
